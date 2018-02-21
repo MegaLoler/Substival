@@ -5,14 +5,11 @@
 	   node-value
 	   node-children
 	   leafp
-	   map-tree))
+	   tree-to-list
+	   map-tree-value
+	   map-tree
+	   tree-leaves))
 (in-package :substival.tree)
-
-;;;;; things to do....
-;;;;; enumerate leaves... linearly
-;;;;; enumerate leaves... interwovenly
-;;;;; enumerate leaves... randomly?
-;;;;; re-enumeration which produces an enumerable which enumerables an enumerable in a different order?
 
 (defun recursive-enumerable-p (x)
   "Is an object recursively enumerable?"
@@ -30,45 +27,70 @@
 (defgeneric node-children (recursive-enumerable)
   (:documentation "Return an enumeration of the children of a tree node."))
 
-(defclass node ()
-  ((value :accessor node-value
-	  :initarg :value
-	  :type t)
-   (children :accessor node-value
-	     :initarg :children
-	     :type enumerable))) ;; more specifically, an enumerable of recursive enumerables
-
-(defun make-node (value children)
-  (make-instance 'node :value value :children children))
-
-(defmethod node-value ((node node))
-  (node-value node))
-
-(defmethod node-children ((node node))
-  (node-children node))
-
 (defun leafp (node)
   "Whether a node is a leaf or not."
-  (null (node-children node)))
+  (not (any (node-children node))))
 
-;; i want to be able to map a function to every node in a tree
-;; and that function has to return a recursive enumerable of course
-(defun map-tree (fn node)
-  "Map `fn' to each node of a tree."
+(defstruct (tree-node (:constructor make-node (value children)))
+  (value nil :type t)
+  (children nil :type enumerable))
+
+(defmethod node-value ((node tree-node))
+  (tree-node-value node))
+
+(defmethod node-children ((node tree-node))
+  (tree-node-children node))
+
+(defun tree-to-list (node)
+  "Convert a tree to a list given the root node.
+Be careful not to use on infinite trees!"
+  (declare (type recursive-enumerable node))
+  (if (leafp node)
+      (node-value node)
+      (list (node-value node)
+	    (mapcar #'tree-to-list (to-list (node-children node))))))
+
+(defun map-tree-value (fn node)
+  "Map `fn' to the values of each node of a tree."
   (declare (type recursive-enumerable node))
   (make-node (funcall fn (node-value node))
 	     (map-yield (lambda (child)
-			  (map-tree fn child))
-			(node-children node))))
+	     		  (map-tree-value fn child))
+	     		(node-children node))))
 
-;(map-tree #'1+ (make-node 1 (list (make-node 2 nil) (make-node 3 nil))))
+(defun map-tree (fn node)
+  "Apply `fn' to each node of a tree."
+  (declare (type recursive-enumerable node))
+  (funcall fn node)
+  (map-enumerable fn (node-children node)))
 
-;; and i want a function that makes an enumerable from the leaves 
+;; i want to implement it like this but maybe i can't yield from inside lambdas?
 
-;; and i want a `re-enumerate` that takes an enumerable and reorders it some way
-;; maybe... not sure honestly
-;; basically.... i need to decide how to exhaust choices in infinite trees..
-;; yes, basicaly i just need to think about.... How do i want to explore the trees?
-;; what order ?
+;; (defun tree-leaves (node)
+;;   "Return an enumerable of the leaves of a tree."
+;;   (declare (type recursive-enumerable node))
+;;   (with-enumerable
+;;     (map-tree (lambda (node) (if (leafp node) (yield (node-value node))))
+;; 	      node)))
 
-;;(defvar
+(defun tree-leaves (node)
+  "Return an enumerable of the leaves of a tree."
+  (declare (type recursive-enumerable node))
+  (with-enumerable
+    (if (leafp node) (yield (node-value node)))
+    (do-enumerable (child (node-children node))
+      (do-enumerable (leaf (funcall #'tree-leaves child))
+	(yield leaf)))))
+
+;; (tree-to-list (map-tree-value #'1+ (make-node 1 (list (make-node 2 nil) (make-node 3 nil)))))
+;; (tree-to-list (make-node 1 (list (make-node 2 nil) (make-node 3 nil))))
+;; (map-tree #'print (make-node 1 (list (make-node 2 nil) (make-node 3 nil))))
+;; (map-tree (lambda (node) (if (leafp node) (print (node-value node))))
+;; 	  (make-node 1 (list (make-node 2 nil) (make-node 3 nil))))
+;; (make-node 1 (list (make-node 2 nil) (make-node 3 nil)))
+;; (to-list (tree-leaves (make-node 1 (list (make-node 2 nil) (make-node 3 nil)))))
+
+
+
+
+;; i also will need a way to traverse trees non-linearly, eg, with each branch alternatingly being traversed, to interweave it
