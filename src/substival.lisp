@@ -4,19 +4,16 @@
 	   sub-eval-1))
 (in-package :substival)
 
-;; input-spec and output-spec are extended type specifications
-;; perform a destructuring bind on the expression according to the input-spec
-;; then return a type-spec specifying a subtype of the output-spec
-;; with variables in output-spec replaced with the destructured bindings
-(defun sub-eval-1 (expression input-spec output-spec)
+;; convert expression-spec from type specified by source-spec to type specified by target-spec
+;; ie coerce expression-spec from the type of all expressions in the source language to the type of all expressions in the target language
+;; translation here is just a case of type conversion
+(defun sub-eval-1 (expression-spec source-spec target-spec)
   "Perform a single iteration of evaluation."
-  (subtype-with-bindings
-   output-spec
-   (destructure-with-type expression input-spec)))
+  (extended-subtype-coerce expression-spec target-spec source-spec))
 
-(defun sub-eval (expression input-spec output-spec)
-  "Iteratively evaluate `expression' until it is no longer specified by `input-spec'."
-  (let ((result (sub-eval-1 expression input-spec output-spec)))
+(defun sub-eval (expression-spec source-spec target-spec)
+  "Iteratively evaluate `expression-spec' until it no longer specifies a type that is also specified by `source-spec'."
+  (let ((result (sub-eval-1 expression-spec source-spec target-spec)))
     (if result
-	(sub-eval result input-spec output-spec)
-	expression)))
+	(sub-eval result source-spec target-spec)
+	expression-spec)))
