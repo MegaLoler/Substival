@@ -1,14 +1,10 @@
 (defsystem #:substival
-  :description "A bidirectional nondeterministic substitution evaluator."
+  :description "A bidirectional substitution evaluator."
   :author "MegaLoler"
   :serial t
-  :depends-on (#:enumerable
-	       #:extended-type-specifiers
-	       #:cl-arrows)
+  :depends-on (#:enumerable)
   :components ((:module "src"
 			:serial t
 			:components
-			((:file "util")
-			 (:file "tree")
-			 (:file "choice")
+			((:file "extended-types")
 			 (:file "substival")))))
