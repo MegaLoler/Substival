@@ -5,14 +5,12 @@
 (in-package :substival)
 
 ;; input-spec and output-spec are extended type specifications
-;; expression is also an extended type spec
-;; (a literal expression functions as an extended type spec as well)
 ;; perform a destructuring bind on the expression according to the input-spec
-;; then return a type-spec specifying a sub-type of the output-spec
-;; with variables replaced with their bindings
+;; then return a type-spec specifying a subtype of the output-spec
+;; with variables in output-spec replaced with the destructured bindings
 (defun sub-eval-1 (expression input-spec output-spec)
-  "Perform a single iteration of substitution."
-  (sub-type-with-bindings
+  "Perform a single iteration of evaluation."
+  (subtype-with-bindings
    output-spec
    (destructure-with-type expression input-spec)))
 
