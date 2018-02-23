@@ -60,9 +60,14 @@
   "Whether `expression' is a type stucture specifier."
   (formp expression *type-structure-spec-form-name*))
 
+;; is there a better way to do this?
 (defun native-type-specp (expression)
   "Whether `expression' is a native type specifier."
-  nil) ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; gotto figuer this 1 out
+  (handler-case
+      (progn
+	(typep nil expression)
+	t)
+    (t () nil)))
 
 (defun extended-type-specp (expression)
   "Whether `expression' is an extended type specifier.
@@ -161,8 +166,156 @@ Includes both native and extended type specifiers."
 ;; checking whether a type specifier specifies a subtype of the type specified by another type specifier
 
 (defun subtypep-literal-literal (subtype-spec type-spec)
-  "Whether the literal type specifier `subtype-spec' specfies a subtype of the type specified by literal type specifier `subtype-spec'."
+  "Whether the literal type specifier `subtype-spec' specfies a subtype of the type specified by literal type specifier `type-spec'."
+  (declare (type literal-type-spec subtype-spec))
+  (declare (type literal-type-spec type-spec))
   nil)
+
+(defun subtypep-literal-variable (subtype-spec type-spec)
+  "Whether the literal type specifier `subtype-spec' specfies a subtype of the type specified by named type specifier `type-spec'."
+  (declare (type literal-type-spec subtype-spec))
+  (declare (type variable-type-spec type-spec))
+  nil)
+
+(defun subtypep-literal-ambiguous (subtype-spec type-spec)
+  "Whether the literal type specifier `subtype-spec' specfies a subtype of the type specified by ambiguous type specifier `type-spec'."
+  (declare (type literal-type-spec subtype-spec))
+  (declare (type ambiguous-type-spec type-spec))
+  nil)
+
+(defun subtypep-literal-structure (subtype-spec type-spec)
+  "Whether the literal type specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type literal-type-spec subtype-spec))
+  (declare (type type-structure-spec type-spec))
+  nil)
+
+(defun subtypep-literal-native (subtype-spec type-spec)
+  "Whether the literal type specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type literal-type-spec subtype-spec))
+  (declare (type native-type-spec type-spec))
+  nil)
+
+(defun subtypep-variable-literal (subtype-spec type-spec)
+  "Whether the named type specifier `subtype-spec' specfies a subtype of the type specified by literal type specifier `type-spec'."
+  (declare (type variable-type-spec subtype-spec))
+  (declare (type literal-type-spec type-spec))
+  nil)
+
+(defun subtypep-variable-variable (subtype-spec type-spec)
+  "Whether the named type specifier `subtype-spec' specfies a subtype of the type specified by named type specifier `type-spec'."
+  (declare (type variable-type-spec subtype-spec))
+  (declare (type variable-type-spec type-spec))
+  nil)
+
+(defun subtypep-variable-ambiguous (subtype-spec type-spec)
+  "Whether the named type specifier `subtype-spec' specfies a subtype of the type specified by ambiguous type specifier `type-spec'."
+  (declare (type variable-type-spec subtype-spec))
+  (declare (type ambiguous-type-spec type-spec))
+  nil)
+
+(defun subtypep-variable-structure (subtype-spec type-spec)
+  "Whether the named type specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type variable-type-spec subtype-spec))
+  (declare (type type-structure-spec type-spec))
+  nil)
+
+(defun subtypep-variable-native (subtype-spec type-spec)
+  "Whether the named type specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type variable-type-spec subtype-spec))
+  (declare (type native-type-spec type-spec))
+  nil)
+
+(defun subtypep-ambiguous-literal (subtype-spec type-spec)
+  "Whether the ambiguous type specifier `subtype-spec' specfies a subtype of the type specified by literal type specifier `type-spec'."
+  (declare (type ambiguous-type-spec subtype-spec))
+  (declare (type literal-type-spec type-spec))
+  nil)
+
+(defun subtypep-ambiguous-variable (subtype-spec type-spec)
+  "Whether the ambiguous type specifier `subtype-spec' specfies a subtype of the type specified by named type specifier `type-spec'."
+  (declare (type ambiguous-type-spec subtype-spec))
+  (declare (type variable-type-spec type-spec))
+  nil)
+
+(defun subtypep-ambiguous-ambiguous (subtype-spec type-spec)
+  "Whether the ambiguous type specifier `subtype-spec' specfies a subtype of the type specified by ambiguous type specifier `type-spec'."
+  (declare (type ambiguous-type-spec subtype-spec))
+  (declare (type ambiguous-type-spec type-spec))
+  nil)
+
+(defun subtypep-ambiguous-structure (subtype-spec type-spec)
+  "Whether the ambiguous type specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type ambiguous-type-spec subtype-spec))
+  (declare (type type-structure-spec type-spec))
+  nil)
+
+(defun subtypep-ambiguous-native (subtype-spec type-spec)
+  "Whether the ambiguous type specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type ambiguous-type-spec subtype-spec))
+  (declare (type native-type-spec type-spec))
+  nil)
+
+(defun subtypep-structure-literal (subtype-spec type-spec)
+  "Whether the type structure specifier `subtype-spec' specfies a subtype of the type specified by literal type specifier `type-spec'."
+  (declare (type type-structure-spec subtype-spec))
+  (declare (type literal-type-spec type-spec))
+  nil)
+
+(defun subtypep-structure-variable (subtype-spec type-spec)
+  "Whether the type structure specifier `subtype-spec' specfies a subtype of the type specified by named type specifier `type-spec'."
+  (declare (type type-structure-spec subtype-spec))
+  (declare (type variable-type-spec type-spec))
+  nil)
+
+(defun subtypep-structure-ambiguous (subtype-spec type-spec)
+  "Whether the type structure specifier `subtype-spec' specfies a subtype of the type specified by ambiguous type specifier `type-spec'."
+  (declare (type type-structure-spec subtype-spec))
+  (declare (type ambiguous-type-spec type-spec))
+  nil)
+
+(defun subtypep-structure-structure (subtype-spec type-spec)
+  "Whether the type structure specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type type-structure-spec subtype-spec))
+  (declare (type type-structure-spec type-spec))
+  nil)
+
+(defun subtypep-structure-native (subtype-spec type-spec)
+  "Whether the type structure specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type type-structure-spec subtype-spec))
+  (declare (type native-type-spec type-spec))
+  nil)
+
+(defun subtypep-native-literal (subtype-spec type-spec)
+  "Whether the native type specifier `subtype-spec' specfies a subtype of the type specified by literal type specifier `type-spec'."
+  (declare (type native-type-spec subtype-spec))
+  (declare (type literal-type-spec type-spec))
+  nil)
+
+(defun subtypep-native-variable (subtype-spec type-spec)
+  "Whether the native type specifier `subtype-spec' specfies a subtype of the type specified by named type specifier `type-spec'."
+  (declare (type native-type-spec subtype-spec))
+  (declare (type variable-type-spec type-spec))
+  nil)
+
+(defun subtypep-native-ambiguous (subtype-spec type-spec)
+  "Whether the native type specifier `subtype-spec' specfies a subtype of the type specified by ambiguous type specifier `type-spec'."
+  (declare (type native-type-spec subtype-spec))
+  (declare (type ambiguous-type-spec type-spec))
+  nil)
+
+(defun subtypep-native-structure (subtype-spec type-spec)
+  "Whether the native type specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type native-type-spec subtype-spec))
+  (declare (type type-structure-spec type-spec))
+  nil)
+
+(defun subtypep-native-native (subtype-spec type-spec)
+  "Whether the native type specifier `subtype-spec' specfies a subtype of the type specified by type structure specifier `type-spec'."
+  (declare (type native-type-spec subtype-spec))
+  (declare (type native-type-spec type-spec))
+  nil)
+
+
 
 (defun extended-subtypep (subtype-spec type-spec)
   "Whether `subtype-spec' specifies a subtype of the type specified by `type-spec'."
