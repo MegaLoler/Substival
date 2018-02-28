@@ -364,7 +364,7 @@ Optionally assert that the type specified by the return value is a subtype of th
 (defun extended-subtype-coerce (expression-spec target-spec &optional source-spec)
   "Convert `expression-spec' to a type specifier that specifies a subtype of the type specified by `target-spec'.
 Optionally assert that `expression-spec' specifies a subtype of the type specified by `source-spec.'"
-  nil)
+  (subtype-with-bindings target-spec (destructure-with-type expression-spec source-spec)))
 
 (defun extended-coerce (expression target-spec &optional source-spec)
   "Convert `expression' to an instance of the type specified by `target-spec'.
@@ -375,11 +375,26 @@ Optionally assert that `expression' is an instance of a type specified by `sourc
 
 ;; destructuring and binding
 
-(defun destructure-with-type (subtype-spec type-spec)
-  "Perfom a destructuring-bind on `subtype-spec' according to the structure of `type-spec'.
+(defun destructure-with-type (subtype-spec type-spec &optional (bindings (make-hash-table)))
+  "Perform a destructuring-bind on `subtype-spec' according to the structure of `type-spec'.
 Return the bindings as a hashmap."
-  nil)
+  bindings)
 
 (defun subtype-with-bindings (type-spec bindings)
   "Return a type-spec that is a subtype of `type-spec' by replacing the variables in `type-spec' with the corresponding bindings in the hashmap `bindings'."
-  nil)
+  (cond ((typep type-spec 'variable-type-spec)
+	 (make-variable-type-spec
+	  (variable-type-spec-name type-spec)
+	  (gethash (variable-type-spec-name type-spec)
+		   bindings)))
+	((typep type-spec 'type-structure-spec)
+	 (make-type-structure-spec
+	  (mapcar (lambda (type-spec)
+		    (subtype-with-bindings type-spec bindings))
+		  (type-structure-spec-type-structure type-spec))))
+	((typep type-spec 'ambiguous-type-spec)
+	 (make-ambiguous-type-spec
+	  (mapcar (lambda (type-spec)
+		    (subtype-with-bindings type-spec bindings))
+		  (ambiguous-type-spec-type-specs type-spec))))
+	(t type-spec)))
