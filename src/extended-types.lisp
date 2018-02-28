@@ -96,7 +96,7 @@ Includes both native and extended type specifiers."
   '(satisfies ambiguous-type-specp))
 
 (deftype type-structure-spec ()
-  '(satisfies type-stucture-specp))
+  '(satisfies type-structure-specp))
 
 (deftype native-type-spec ()
   '(satisfies native-type-specp))
@@ -142,7 +142,7 @@ Includes both native and extended type specifiers."
 
 (defun make-ambiguous-type-spec (type-specs)
   "Return an ambiguous type specifier that specifies any of the types specified by the type specifiers in the list `type-specs'."
-  (proclaim `(type type-spec ,@type-specs))
+  ;(proclaim `(type type-spec ,@type-specs))
   `(,*ambiguous-type-spec-form-name* ,@type-specs))
 
 (defun ambiguous-type-spec-type-specs (ambiguous-type-spec)
@@ -187,7 +187,7 @@ Includes both native and extended type specifiers."
   "Whether the ambiguous type specifier `subtype-spec' specfies a subtype of the type specified by `type-spec'."
   (declare (type ambiguous-type-spec subtype-spec))
   (declare (type type-spec type-spec))
-  (subtypep-all type-spec (ambiguous-type-spec-type-specs subtype-spec)))
+  (all-subtypep (ambiguous-type-spec-type-specs subtype-spec) type-spec))
 
 
 
@@ -261,16 +261,24 @@ Includes both native and extended type specifiers."
 (defun subtype-structurep (subtype-structure type-structure)
   "Whether `subtype-structure' is a subtype structure of `type-structure'."
   (if (and subtype-structure type-structure)
-      (and (extended-subtypep (car subtype-structure) (car type-structure))
-	   (subtype-structurep (cdr subtype-structure) (cdr type-structure)))
-      (equalp subtype-structure type-structure)))
+      (if (and (typep subtype-structure 'list)
+	       (typep type-structure 'list))
+	  (and (extended-subtypep (car subtype-structure) (car type-structure))
+	       (subtype-structurep (cdr subtype-structure) (cdr type-structure)))
+	  (extended-subtypep subtype-structure type-structure))
+      (and (null subtype-structure)
+	   (null type-structure))))
 
 (defun type-structurep (expression type-structure)
   "Whether `expression' has the type structure `type-structure'."
   (if (and expression type-structure)
-      (and (extended-typep (car expression) (car type-structure))
-	   (subtype-structurep (cdr expression) (cdr type-structure)))
-      (equalp expression type-structure)))
+      (if (and (typep expression 'list)
+	       (typep type-structure 'list))
+	  (and (extended-typep (car expression) (car type-structure))
+	       (type-structurep (cdr expression) (cdr type-structure)))
+	  (extended-typep expression type-structure))
+      (and (null expression)
+	   (null type-structure))))
 
 (defun subtypep-any (subtype-spec type-specs)
   "Whether `subtype-spec' specifies a subtype of at least one of the types specified by the type specifiers `type-specs'."
@@ -283,6 +291,19 @@ Includes both native and extended type specifiers."
   (if type-specs
       (and (extended-subtypep subtype-spec (car type-specs))
 	   (subtypep-all subtype-spec (cdr type-specs)))
+      t))
+
+(defun any-subtypep (subtype-specs type-spec)
+  "Whether `subtype-spec' specifies a subtype of at least one of the types specified by the type specifiers `type-specs'."
+  (if subtype-specs
+      (or (extended-subtypep (car subtype-specs) type-spec)
+	  (any-subtypep (cdr subtype-specs) type-spec))))
+
+(defun all-subtypep (subtype-specs type-spec)
+  "Whether `subtype-spec' specifies a subtype of every one of the types specified by the type specifiers `type-specs'."
+  (if subtype-specs
+      (and (extended-subtypep (car subtype-specs) type-spec)
+	   (all-subtypep (cdr subtype-specs) type-spec))
       t))
 
 ;; lmao this is a mess
